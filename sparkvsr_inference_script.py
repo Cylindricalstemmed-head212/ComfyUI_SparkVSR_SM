@@ -441,10 +441,12 @@ def process_video_ref_i2v(
 ):
     # Decode video
     # video: [B, C, F, H, W]
-    # pipe.vae.to(video.device, dtype=video.dtype)
-    video = video.to(pipe.device, dtype=pipe.dtype)
+    video = video.to(pipe.device,pipe.dtype)
+    pipe.vae.to(video.device, dtype=video.dtype)
+   
+    #print(f"Decoding video with shape {video.dtype},vae device: {pipe.vae.device}, vae dtype: {pipe.vae.dtype}")
     latent_dist = pipe.vae.encode(video).latent_dist
-    lq_latent = latent_dist.sample() * pipe.vae.config.scaling_factor 
+    lq_latent = latent_dist.sample() * pipe.vae.config.scaling_factor
     # lq_latent: [B, 16, F_lat, H_lat, W_lat]
     
     batch_size, num_channels, num_frames, height, width = lq_latent.shape
@@ -639,7 +641,7 @@ def process_video_ref_i2v(
 
 def load_sparkvsr_model( args, device):
     # Setup
-    print(f"Loading Model from {args}")
+    #print(f"Loading Model from {args}")
     if args.dtype == "float16":
         dtype = torch.float16
     elif args.dtype == "bfloat16":
@@ -793,8 +795,13 @@ def per_video_refer(args, video_path,SR_model,sr_image, save_pisasr=True,empty_p
                 tensor2image(img).save(os.path.join(folder_paths.get_output_directory(),f"sr_img_indices{idx}_{prefiex}.png"))
 
     elif args.ref_mode == "SRimg_in":
-        ref_frames_list=[map_0_1_to_neg1_1(img) for img in sr_image]
-        assert len(sr_image) == len(ref_indices), "Number of SR images must match number of reference indices"
+        ref_frames_list==resize_pli(ref_frames_list,video)
+        if len(ref_frames_list)>len(ref_indices):
+            print(f"[PiSA-SR] WARNING: SR image count ({len(ref_frames_list)}) > ref_indices count ({len(ref_indices)}). Truncating SR images to match ref_indices count.")
+            ref_frames_list=ref_frames_list[:len(ref_indices)]
+        else:
+            print(f"[PiSA-SR] WARNING: ref_indices count ({len(ref_indices)}) > SR image count ({len(ref_frames_list)}). Truncating ref_indices to match SR image count.")
+            ref_indices=ref_indices[:len(ref_frames_list)]
 
     output={
         "ref_frames_list": ref_frames_list,
@@ -849,71 +856,80 @@ def infer_sparkvsr(args, pipe, conds):
     # Tiling Setup
     B, C, F, H, W = video.shape
     overlap_t = args.overlap_t if args.chunk_len > 0 else 0
-    overlap_hw = args.overlap_hw if args.tile_size_hw != (0,0) else (0,0)
+    overlap_hw = tuple(args.overlap_hw) if tuple(args.tile_size_hw) != (0,0) else (0,0)
     
     time_chunks = make_temporal_chunks(F, args.chunk_len, overlap_t)
     spatial_tiles = make_spatial_tiles(H, W, args.tile_size_hw, overlap_hw)
     
     output_video = torch.zeros_like(video)
     #write_count = torch.zeros_like(video, dtype=torch.int)
-
     print(f"Processing: F={F} H={H} W={W} | Chunks={len(time_chunks)} Tiles={len(spatial_tiles)}")
+    print(spatial_tiles, time_chunks) #[(0, 544, 0, 960)] [(0, 33)]
     total_tiles = len(time_chunks) * len(spatial_tiles)
-    with tqdm(total=total_tiles, desc="Processing video tiles") as pbar:
-        for t_start, t_end in time_chunks:
-            for h_start, h_end, w_start, w_end in spatial_tiles:
-                video_chunk = video[:, :, t_start:t_end, h_start:h_end, w_start:w_end]
-                
-                # Check Refs for Spatial Tile (Optimization: Crop Refs)
-                # We need to crop reference frames to match the current spatial tile
-                current_ref_frames = []
-                for rf in ref_frames_list:
-                    # rf is [C, VideoH, VideoW]
-                    rf_crop = rf[:, h_start:h_end, w_start:w_end]
-                    current_ref_frames.append(rf_crop)
+    overall_pbar = tqdm(total=total_tiles, desc="Overall progress")
 
-                _video_generate = process_video_ref_i2v(
-                    pipe=pipe,
-                    video=video_chunk,
-                    prompt="",
-                    ref_frames=current_ref_frames,
-                    ref_indices=ref_indices,
-                    chunk_start_idx=t_start,
-                    noise_step=args.noise_step,
-                    sr_noise_step=args.sr_noise_step,
-                    empty_prompt_embedding=empty_prompt_embedding,
-                    ref_guidance_scale=args.ref_guidance_scale,
-                )
-                # 显式释放中间变量
-                del video_chunk, current_ref_frames
-                torch.cuda.empty_cache()
-                
-                region = get_valid_tile_region(
-                    t_start, t_end, h_start, h_end, w_start, w_end,
-                    video.shape, overlap_t, overlap_hw[0], overlap_hw[1]
-                )
-                
-                output_video[:, :, region["out_t_start"]:region["out_t_end"],
-                                region["out_h_start"]:region["out_h_end"],
-                                region["out_w_start"]:region["out_w_end"]] = \
-                _video_generate[:, :, region["valid_t_start"]:region["valid_t_end"],
-                                region["valid_h_start"]:region["valid_h_end"],
-                                region["valid_w_start"]:region["valid_w_end"]]
-                
-                # write_count[:, :, region["out_t_start"]:region["out_t_end"],
-                #                 region["out_h_start"]:region["out_h_end"],
-                #                 region["out_w_start"]:region["out_w_end"]] += 1
-                
-                # 显式释放中间变量
-                del _video_generate, region
-                torch.cuda.empty_cache()
+    for t_idx, (t_start, t_end) in enumerate(time_chunks):
+        # 为每个时间块创建空间tile进度条
+        spatial_pbar = tqdm(total=len(spatial_tiles), desc=f"Time chunk {t_idx+1}/{len(time_chunks)}", leave=False)
+        
+        for h_start, h_end, w_start, w_end in spatial_tiles:
+            video_chunk = video[:, :, t_start:t_end, h_start:h_end, w_start:w_end]
+            
+            # Check Refs for Spatial Tile (Optimization: Crop Refs)
+            # We need to crop reference frames to match the current spatial tile
+            current_ref_frames = []
+            for rf in ref_frames_list:
+                # rf is [C, VideoH, VideoW]
+                rf_crop = rf[:, h_start:h_end, w_start:w_end]
+                current_ref_frames.append(rf_crop)
 
-                pbar.update(1)
-                pbar.set_postfix({
-                    'Chunk': f'{t_start}-{t_end}',
-                    'Tile': f'{h_start}-{h_end}x{w_start}-{w_end}'
-                })
-        pipe.maybe_free_model_hooks()
+            _video_generate = process_video_ref_i2v(
+                pipe=pipe,
+                video=video_chunk,
+                prompt="",
+                ref_frames=current_ref_frames,
+                ref_indices=ref_indices,
+                chunk_start_idx=t_start,
+                noise_step=args.noise_step,
+                sr_noise_step=args.sr_noise_step,
+                empty_prompt_embedding=empty_prompt_embedding,
+                ref_guidance_scale=args.ref_guidance_scale,
+            )
+            # 显式释放中间变量
+            del video_chunk, current_ref_frames
+            torch.cuda.empty_cache()
+            
+            region = get_valid_tile_region(
+                t_start, t_end, h_start, h_end, w_start, w_end,
+                video.shape, overlap_t, overlap_hw[0], overlap_hw[1]
+            )
+            
+            output_video[:, :, region["out_t_start"]:region["out_t_end"],
+                            region["out_h_start"]:region["out_h_end"],
+                            region["out_w_start"]:region["out_w_end"]] = \
+            _video_generate[:, :, region["valid_t_start"]:region["valid_t_end"],
+                            region["valid_h_start"]:region["valid_h_end"],
+                            region["valid_w_start"]:region["valid_w_end"]]
+            
+            # 显式释放中间变量
+            del _video_generate, region
+            torch.cuda.empty_cache()
+
+            overall_pbar.update(1)
+            spatial_pbar.update(1)
+            overall_pbar.set_postfix({
+                'Chunk': f'{t_start}-{t_end}',
+                'Tile': f'{h_start}-{h_end}x{w_start}-{w_end}'
+            })
+            spatial_pbar.set_postfix({
+                'Spatial': f'{h_start}-{h_end}x{w_start}-{w_end}'
+            })
+        
+        spatial_pbar.close()
+
+    overall_pbar.close()
+    pipe.maybe_free_model_hooks()
+
     video_generate = output_video
     # Save
     video = remove_padding_and_extra_frames(video_generate, conds["pad_f"], conds["pad_h"]*conds["effective_upscale"], conds["pad_w"]*conds["effective_upscale"])
