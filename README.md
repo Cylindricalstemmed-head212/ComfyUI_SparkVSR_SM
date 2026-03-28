@@ -27,6 +27,8 @@
 
 Update
 -----
+* 修复一些错误，超大视频请按工作流的note来调整tile数值
+
 * gguf mabe can't work,use safetensors . Preprocess the image node to connect to the pisa_sr node to load the model, or use other methods to upscale a single-frame image, that is, enable reference image mode; otherwise, it is non-reference image mode.  ref_indices are the sequence frame numbers of the reference image in the source video. For example,' 0, 'is the first frame. You can also input 0 to only reference the first frame to save resources and achieve better results.
 * gguf模式目前还未测试是否可用。预处理图片节点接入pisa_sr 节点加载的模型  或者你用其他方法放大的单帧图片，即开启图模式，否则是非垫图模式，ref_indices是垫图在源视频的序列帧序号，比如0就是首帧，你也可以输入'0,'(注意有逗号) 只参考首帧以节省资源获得更好的效果.
 
@@ -64,6 +66,7 @@ pip install -r requirements.txt
 
 4.Example
 ----
+![](https://github.com/smthemex/ComfyUI_SparkVSR_SM/blob/main/example_workflows/examp.png)
 ![](https://github.com/smthemex/ComfyUI_SparkVSR_SM/blob/main/example_workflows/exampS2.png)
 
 
